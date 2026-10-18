@@ -321,7 +321,7 @@ def run_test(llm, browser, req, base_url, out_dir, max_steps):
                 result = {
                     "verdict": str(step.get("verdict") or "unverified").lower().strip(),
                     "observed": step.get("observed") or obs,
-                    "reason": step.get("reason") or "",
+                    "reason": step.get("reason") or step.get("observed") or obs,
                 }
                 break
 
