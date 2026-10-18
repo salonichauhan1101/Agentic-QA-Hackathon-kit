@@ -25,10 +25,10 @@ from playwright.sync_api import sync_playwright, Error as PlaywrightError
 
 load_dotenv()
 
-MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 # Paid-tier prices in USD per 1M tokens. Check https://ai.google.dev/pricing and update if needed.
-PRICE_IN = float(os.getenv("PRICE_INPUT_PER_M", "0.30"))
-PRICE_OUT = float(os.getenv("PRICE_OUTPUT_PER_M", "2.50"))
+PRICE_IN = float(os.getenv("PRICE_INPUT_PER_M", "0.75"))
+PRICE_OUT = float(os.getenv("PRICE_OUTPUT_PER_M", "3.75"))
 # Free-tier keys are rate limited, so calls are spaced out (seconds between calls).
 MIN_GAP = float(os.getenv("MIN_SECONDS_BETWEEN_CALLS", "6.5"))
 PAGE_TEXT_LIMIT = 5000
