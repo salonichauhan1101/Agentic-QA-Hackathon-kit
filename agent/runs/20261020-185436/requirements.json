@@ -1,0 +1,200 @@
+[
+  {
+    "id": "REQ-01",
+    "section": "Users and access",
+    "requirement": "The landing page displays an 'Enter Demo' button that opens the demo dashboard without requiring credentials.",
+    "browser_testable": true,
+    "priority": 2,
+    "test_task": "Navigate to the landing page. Verify the presence of the 'Enter Demo' button. Click 'Enter Demo'. Record the current URL and verify that the user is navigated to the demo dashboard displaying customer accounts.",
+    "expected": "Clicking 'Enter Demo' immediately opens the demo dashboard view with customer accounts without prompting for login credentials or identity verification."
+  },
+  {
+    "id": "REQ-02",
+    "section": "Users and access",
+    "requirement": "The header identifies the active demo customer and provides a 'Log out' action that returns the user to the landing page.",
+    "browser_testable": true,
+    "priority": 2,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Record the customer identifier/name displayed in the header. Locate and click the 'Log out' button. Record the resulting URL and UI elements.",
+    "expected": "The header visibly identifies the active demo customer. Clicking 'Log out' redirects the user back to the landing page."
+  },
+  {
+    "id": "REQ-03",
+    "section": "Users and access",
+    "requirement": "Protected dashboard views are inaccessible after logging out, and direct navigation returns the user to the landing page or an access-required state.",
+    "browser_testable": true,
+    "priority": 2,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Note the dashboard URL. Click 'Log out'. Once returned to the landing page, attempt to navigate directly to the noted dashboard URL. Record the resulting URL and page content.",
+    "expected": "Direct navigation to the dashboard after logout fails to render protected customer data and redirects to the landing page or an access-required state."
+  },
+  {
+    "id": "REQ-04",
+    "section": "Users and access",
+    "requirement": "Refreshing a protected page during an active demo session preserves the session, whereas refreshing after logout does not restore access.",
+    "browser_testable": true,
+    "priority": 2,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Note the visible customer accounts. Refresh the browser page and verify the session remains active. Then click 'Log out'. Once on the landing page, press browser refresh and attempt back/forward navigation. Record the final page state.",
+    "expected": "Refreshing while logged in keeps the dashboard active with account data intact. Refreshing after logout does not regain authenticated access."
+  },
+  {
+    "id": "REQ-05",
+    "section": "Dashboard and accounts",
+    "requirement": "The dashboard displays checking and savings accounts with readable names, account types, masked identifiers, and balances formatted to two decimal places in USD without exposing full account numbers.",
+    "browser_testable": true,
+    "priority": 3,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Inspect each account card on the dashboard. Record the displayed account names, account types, masked identifiers (e.g. ending in last 4 digits), and balance text.",
+    "expected": "Checking and savings accounts are displayed with readable names, types, masked identifiers (no full account numbers exposed), and USD balances formatted with exactly two decimal places (e.g., $X,XXX.XX)."
+  },
+  {
+    "id": "REQ-06",
+    "section": "Dashboard and accounts",
+    "requirement": "Selecting an account navigates to its detail view showing the current balance and related transaction history matching latest successful transactions.",
+    "browser_testable": true,
+    "priority": 3,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Record the checking account balance on the dashboard. Click on the checking account card/link to open its detail view. Record the detail view balance and the most recent transaction listed.",
+    "expected": "The account detail view opens, showing a balance that matches the dashboard and a transaction history corresponding to that specific account."
+  },
+  {
+    "id": "REQ-07",
+    "section": "Transfers between owned accounts",
+    "requirement": "The transfer form provides fields for source account, destination account, amount, and an optional memo.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Navigate to the Transfer funds section/modal. Inspect the form elements and record the presence of source account dropdown, destination account dropdown, amount input, and memo input.",
+    "expected": "The transfer interface contains controls to select source account, destination account, enter an amount, and optionally enter a memo."
+  },
+  {
+    "id": "REQ-08",
+    "section": "Transfers between owned accounts",
+    "requirement": "Same-account transfers (source and destination identical) are rejected with a clear explanation, leaving balances and transaction history unchanged.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Record Checking balance ($B1) and transaction count ($T1). Open Transfer. Select Checking as both source and destination. Enter amount 10.00 and submit. Record the error message. Close form, re-check Checking balance ($B2) and transaction count ($T2).",
+    "expected": "Transfer is rejected with a clear error indicating source and destination must differ. Checking balance remains unchanged ($B1 == $B2) and no new transaction is recorded ($T1 == $T2)."
+  },
+  {
+    "id": "REQ-09",
+    "section": "Transfers between owned accounts",
+    "requirement": "Transfer amounts that are blank, zero, negative, non-numeric, or have more than two decimal places must be rejected with validation errors without altering balances or creating transactions.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Record source balance ($S1) and destination balance ($D1). Open Transfer. Set Checking as source, Savings as destination. Sequentially test invalid amounts: blank, '0', '-5', 'abc', and '10.001'. Attempt submission for each. Record validation messages. Close form, record final balances ($S2, $D2).",
+    "expected": "Each invalid amount input shows a clear validation error preventing submission. Balances remain strictly unchanged ($S1 == $S2, $D1 == $D2) and no transactions are created."
+  },
+  {
+    "id": "REQ-10",
+    "section": "Transfers between owned accounts",
+    "requirement": "Transfer amounts exceeding the source account's available balance must be rejected for insufficient funds, leaving balances unchanged and creating no transaction.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Record Checking balance ($C1) and Savings balance ($S1). Open Transfer. Set source to Checking, destination to Savings. Enter amount equal to $C1 + 1000.00. Submit. Record the error message. Close form. Record Checking balance ($C2) and Savings balance ($S2).",
+    "expected": "The transfer is rejected with an insufficient funds error message. Balances remain unchanged ($C1 == $C2, $S1 == $S2) and no transaction appears in history."
+  },
+  {
+    "id": "REQ-11",
+    "section": "Transfers between owned accounts",
+    "requirement": "A valid transfer atomically decreases the source account balance and increases the destination account balance by the exact transfer amount.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Record Checking balance ($C1) and Savings balance ($S1). Open Transfer. Select Checking as source, Savings as destination. Enter amount 25.50 and optional memo 'Test Transfer'. Submit. Record confirmation message. Record updated Checking balance ($C2) and Savings balance ($S2).",
+    "expected": "Transfer succeeds. Checking balance decreases by exactly 25.50 ($C2 == $C1 - 25.50) and Savings balance increases by exactly 25.50 ($S2 == $S1 + 25.50) with no partial transfers."
+  },
+  {
+    "id": "REQ-12",
+    "section": "Transfers between owned accounts",
+    "requirement": "A successful transfer creates one completed transfer record visible in both accounts' transaction histories with amount, date/time, source, destination, status, and memo.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Execute a valid transfer of 15.00 from Checking to Savings with memo 'RentSplit'. Go to Checking transaction history and record the top transaction fields. Then switch to Savings transaction history and record the top transaction fields.",
+    "expected": "A completed transfer record exists in both accounts displaying 15.00, current timestamp, source (Checking), destination (Savings), status 'completed', and memo 'RentSplit'."
+  },
+  {
+    "id": "REQ-13",
+    "section": "Transfers between owned accounts",
+    "requirement": "Refreshing the browser after a successful transfer preserves updated account balances and the new transaction history record.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Execute a valid transfer of 12.00 from Checking to Savings. Record balances ($C1, $S1) and the newly created transaction ID/details. Refresh the browser page. Record post-refresh balances ($C2, $S2) and verify the transaction record still appears.",
+    "expected": "Post-refresh balances remain identical to post-transfer balances ($C2 == $C1, $S2 == $S1) and the transfer record persists in transaction history."
+  },
+  {
+    "id": "REQ-14",
+    "section": "Transfers between owned accounts",
+    "requirement": "The UI reports transfer success only after commit and clearly explains any failure without showing false success states.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Open Transfer. Attempt to submit an invalid transfer (e.g. 0 amount). Verify no success banner or positive confirmation appears. Then submit a valid 5.00 transfer and observe UI feedback transitions.",
+    "expected": "No success indicator is shown upon failed or rejected actions; an unambiguous success message appears only after a successful transfer is committed."
+  },
+  {
+    "id": "REQ-15",
+    "section": "Transaction history",
+    "requirement": "Combined and account-specific transaction histories display date and time, description/memo, transaction type, amount with clear direction, status, and relevant account.",
+    "browser_testable": true,
+    "priority": 3,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Navigate to the transaction history view. Inspect the columns of the transaction table and record details of the first 3 rows (date/time, description, type, direction indicator like +/- or debit/credit, amount, status, account).",
+    "expected": "Every transaction row clearly indicates date/time, description/memo, type, amount with explicit directional sign or color (+/- or credit/debit), status, and associated account."
+  },
+  {
+    "id": "REQ-16",
+    "section": "Transaction history",
+    "requirement": "Transaction history can be filtered simultaneously by account, transaction type, and status, with all displayed rows satisfying all active criteria.",
+    "browser_testable": true,
+    "priority": 2,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Open Transaction History. Apply filter: Account = 'Checking', Type = 'Transfer', Status = 'Completed'. Record all visible rows and verify each row matches all three selected filters.",
+    "expected": "Every row displayed matches Account = 'Checking', Type = 'Transfer', and Status = 'Completed'. No rows violating any of the three filters are shown."
+  },
+  {
+    "id": "REQ-17",
+    "section": "Transaction history",
+    "requirement": "Date range filters are inclusive: transactions occurring on the exact start or end boundary dates must be included in the results.",
+    "browser_testable": true,
+    "priority": 2,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Open Transaction History. Identify a visible transaction and record its date ($D) and description. Set both Start Date and End Date filters to $D. Apply filter. Record the visible transaction rows.",
+    "expected": "The transaction occurring on date $D is displayed in the filtered list, confirming boundary inclusiveness when start date equals end date."
+  },
+  {
+    "id": "REQ-18",
+    "section": "Transaction history",
+    "requirement": "When filters produce an empty result set, the UI displays a clear empty state rather than an error or unrelated transactions.",
+    "browser_testable": true,
+    "priority": 2,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Open Transaction History. Set a date range far in the future (e.g. 2099-01-01 to 2099-01-02). Apply filter. Record the table content and any displayed messaging.",
+    "expected": "A designated empty state message (e.g., 'No transactions found') is displayed without application errors or leftover transaction rows."
+  },
+  {
+    "id": "REQ-19",
+    "section": "Transaction history",
+    "requirement": "Clearing applied history filters restores the complete, unfiltered transaction history.",
+    "browser_testable": true,
+    "priority": 2,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Open Transaction History. Record the initial total row count ($N1). Apply a filter that reduces the list. Click 'Clear Filters' or reset each filter. Record the restored row count ($N2).",
+    "expected": "Clicking clear/reset filters restores the full transaction history such that $N2 matches the initial unfiltered count $N1."
+  },
+  {
+    "id": "REQ-20",
+    "section": "Profile",
+    "requirement": "The profile view displays only synthetic demo customer details (display name, masked email) and does not reveal passwords, authentication tokens, full account identifiers, or other users' data.",
+    "browser_testable": true,
+    "priority": 3,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Navigate to the Profile view. Record the displayed name, email formatting, and inspect the page content/source for passwords, raw tokens, or unmasked account numbers.",
+    "expected": "Profile view shows synthetic customer display name and masked email address. Sensitive items such as passwords, tokens, and full account identifiers are completely absent."
+  },
+  {
+    "id": "REQ-21",
+    "section": "General interface behavior",
+    "requirement": "Interactive action submissions communicate loading/in-progress states to prevent accidental duplicate submissions.",
+    "browser_testable": true,
+    "priority": 3,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Open Transfer. Fill out a valid transfer of 5.00 between accounts. Click the submit button and immediately observe the submit button state (disabled attribute, spinner, or loading text).",
+    "expected": "Upon submission, the action button or container exhibits a loading indicator or becomes disabled to prevent duplicate submissions while in transit."
+  },
+  {
+    "id": "REQ-22",
+    "section": "General interface behavior",
+    "requirement": "Navigation controls and buttons lead to their labeled destinations, and recoverable errors provide options to retry or return to dashboard.",
+    "browser_testable": true,
+    "priority": 3,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Sequentially click navigation links: 'Accounts/Dashboard', 'Transfers', 'Transactions', and 'Profile'. Record destination page headers and verify navigation links allow seamless return to Dashboard.",
+    "expected": "Each navigation link loads its corresponding view accurately, and dashboard navigation remains accessible from all sections."
+  }
+]

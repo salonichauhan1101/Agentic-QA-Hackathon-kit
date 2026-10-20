@@ -1,0 +1,51 @@
+[
+  {
+    "id": "REQ-07",
+    "section": "Transfers between owned accounts",
+    "requirement": "The transfer form provides fields for source account, destination account, amount, and an optional memo.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Navigate to the Transfer funds section/modal. Inspect the form elements and record the presence of source account dropdown, destination account dropdown, amount input, and memo input.",
+    "expected": "The transfer interface contains controls to select source account, destination account, enter an amount, and optionally enter a memo.",
+    "verdict": "passed",
+    "observed": "The transfer form at /transfer contains a source account select ('From account'), destination account select ('To account'), amount input ('Amount (USD)'), and memo input ('Memo (optional)').",
+    "reason": "Observed all four required controls: source account dropdown, destination account dropdown, amount input, and optional memo input on the transfer form.",
+    "repro": [
+      "Open http://localhost:5173",
+      "Click \"Enter Demo\"",
+      "Click \"Transfer\""
+    ],
+    "screenshots": [
+      "REQ-07/step_01.png",
+      "REQ-07/step_02.png",
+      "REQ-07/step_03_final.png"
+    ]
+  },
+  {
+    "id": "REQ-08",
+    "section": "Transfers between owned accounts",
+    "requirement": "Same-account transfers (source and destination identical) are rejected with a clear explanation, leaving balances and transaction history unchanged.",
+    "browser_testable": true,
+    "priority": 1,
+    "test_task": "Start on the landing page, click 'Enter Demo'. Record Checking balance ($B1) and transaction count ($T1). Open Transfer. Select Checking as both source and destination. Enter amount 10.00 and submit. Record the error message. Close form, re-check Checking balance ($B2) and transaction count ($T2).",
+    "expected": "Transfer is rejected with a clear error indicating source and destination must differ. Checking balance remains unchanged ($B1 == $B2) and no new transaction is recorded ($T1 == $T2).",
+    "verdict": "unverified",
+    "observed": "",
+    "reason": "Step budget (5) ran out before a verdict was reached.",
+    "repro": [
+      "Open http://localhost:5173",
+      "Click \"Enter Demo\"",
+      "Wait for the page to update",
+      "Click \"Transactions\"",
+      "Wait for the page to update",
+      "Click \"Transfer\""
+    ],
+    "screenshots": [
+      "REQ-08/step_01.png",
+      "REQ-08/step_02.png",
+      "REQ-08/step_03.png",
+      "REQ-08/step_04.png",
+      "REQ-08/step_05.png"
+    ]
+  }
+]
