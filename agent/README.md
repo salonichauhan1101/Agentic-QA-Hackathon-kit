@@ -36,6 +36,8 @@ PRD.md ──▶ 1. Planner (Gemini) ──▶ requirements.json
 
 ## Setup
 
+Quick option: run `./setup.sh` from the `agent` folder. It does all of the steps below.
+
 ```bash
 cd agent
 python3 -m venv .venv
