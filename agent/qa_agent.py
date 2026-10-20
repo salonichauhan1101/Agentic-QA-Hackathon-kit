@@ -36,6 +36,10 @@ VERDICTS = ("passed", "failed", "unverified")
 
 
 # ---------------------------------------------------------------- LLM wrapper
+class QuotaExhausted(Exception):
+    """Raised when the API's daily request quota is used up (retrying won't help)."""
+
+
 class LLM:
     """Every model call goes through here, so tokens and cost are always counted."""
 
@@ -74,6 +78,8 @@ class LLM:
             except json.JSONDecodeError:
                 print("    ! model returned invalid JSON, retrying")
             except Exception as e:  # rate limits, network blips
+                if "PerDay" in str(e):
+                    raise QuotaExhausted(str(e)[:300])
                 wait = min(60, 5 * 2 ** attempt)
                 print(f"    ! LLM error ({str(e)[:100]}), retrying in {wait}s")
                 time.sleep(wait)
@@ -103,8 +109,8 @@ PLAN_PROMPT = """You are a senior QA engineer. Read the product requirements doc
    filters, test the boundaries: find a date that has a transaction in the history and use it
    as both the start and the end date. Keep each task
    doable in about 15 browser actions; split bigger ones into separate requirements.
-4. Priority: 1 = money movement, validation, security/session; 2 = data display and
-   filters; 3 = cosmetic or general UI.
+4. Priority: 1 = money movement and amount validation; 2 = session/security and
+   history filters; 3 = data display, cosmetic or general UI.
 
 Return JSON only, in this shape:
 {"requirements": [{"id": "REQ-01", "section": "...", "requirement": "...",
@@ -134,11 +140,15 @@ Interactive elements (use the number in brackets as "index"):
 Visible text (may be truncated):
 {text}
 
-Choose ONE next action:
+You have only a few turns, so batch work: return 1-6 actions to perform on the CURRENT
+page, in order (for example, fill every form field and click submit in one turn). Indices
+refer to the current page only, so END the list with any action that navigates or changes
+what is shown (submitting, clicking a link, refresh); you will see the new page next turn.
+Action types:
 - click (index)  - fill (index, value)  - select (index, value = option text)
 - press (value, e.g. "Enter")  - goto (value = a path on this same site, e.g. "/dashboard")
 - refresh  - back  - wait
-- finish (when you can give a verdict)
+- finish: return it as the ONLY action, together with verdict, observed and reason
 
 Verdict rules for finish:
 - "passed" only if you directly observed evidence that the requirement holds.
@@ -147,8 +157,9 @@ Verdict rules for finish:
 
 Return JSON only:
 {"thought": "short reasoning", "observation": "exact relevant values visible now",
- "action": "click|fill|select|press|goto|refresh|back|wait|finish",
- "index": null, "value": null, "verdict": null, "observed": null, "reason": null}"""
+ "actions": [{"action": "click|fill|select|press|goto|refresh|back|wait|finish",
+              "index": null, "value": null}],
+ "verdict": null, "observed": null, "reason": null}"""
 
 # Tags every visible interactive element with a number the model can refer to.
 ELEMENTS_JS = r"""
@@ -313,8 +324,12 @@ def run_test(llm, browser, req, base_url, out_dir, max_steps):
             )
             step = llm.ask_json(prompt)
             obs = step.get("observation") or ""
+            actions = step.get("actions")
+            if not isinstance(actions, list) or not actions:  # tolerate the single-action shape
+                actions = [{k: step.get(k) for k in ("action", "index", "value")}]
+            actions = [a for a in actions if isinstance(a, dict)][:6] or [{"action": "wait"}]
 
-            if str(step.get("action") or "").lower() == "finish":
+            if str(actions[0].get("action") or "").lower() == "finish":
                 shot = rdir / f"step_{n:02d}_final.png"
                 page.screenshot(path=str(shot), full_page=True)
                 shots.append(shot)
@@ -325,19 +340,28 @@ def run_test(llm, browser, req, base_url, out_dir, max_steps):
                 }
                 break
 
-            try:
-                done = run_action(page, step, els, base_url)
-                settle(page)
-                repro.append(done)
-                outcome = "ok"
-            except Exception as e:  # recover: tell the model and let it try something else
-                done = f'{step.get("action")} (index={step.get("index")}, value={step.get("value")})'
-                outcome = "ERROR: " + str(e).splitlines()[0][:200]
+            start_url = page.url
+            history.append(f"{n}. Saw: {obs}")
+            for a in actions:
+                if str(a.get("action") or "").lower() == "finish":
+                    break  # a verdict must come on its own turn, after seeing the result
+                try:
+                    done = run_action(page, a, els, base_url)
+                    settle(page)
+                    repro.append(done)
+                    outcome = "ok"
+                except Exception as e:  # recover: tell the model and let it try something else
+                    done = f'{a.get("action")} (index={a.get("index")}, value={a.get("value")})'
+                    outcome = "ERROR: " + str(e).splitlines()[0][:200]
+                history.append(f"   - Did: {done} -> {outcome}")
+                print(f"    {n:>2}. {done}  [{outcome[:60]}]")
+                if outcome != "ok" or page.url != start_url:
+                    break  # page changed or failed: re-observe before doing more
             shot = rdir / f"step_{n:02d}.png"
             page.screenshot(path=str(shot))
             shots.append(shot)
-            history.append(f"{n}. Saw: {obs} | Did: {done} -> {outcome}")
-            print(f"    {n:>2}. {done}  [{outcome[:60]}]")
+    except QuotaExhausted:
+        raise
     except Exception as e:
         result = {"verdict": "unverified", "observed": "", "reason": f"Agent error: {str(e)[:200]}"}
         try:
@@ -374,7 +398,7 @@ def write_report(out_dir, args, reqs, results, llm, started, finished):
         elif not req.get("browser_testable"):
             verdict, note = "unverified", "Not testable through the browser UI."
         else:
-            verdict, note = "unverified", "Not covered in this run (test budget)."
+            verdict, note = "unverified", "Not covered in this run (test budget or daily LLM quota)."
         counts[verdict] += 1
         rows.append(
             f'| {req["id"]} | {esc(req.get("section"))} | {esc(req["requirement"])} '
@@ -492,7 +516,11 @@ def main():
         browser = p.chromium.launch(headless=args.headless, slow_mo=args.slow_mo)
         for i, req in enumerate(selected, 1):
             print(f"\n[{i}/{len(selected)}] {req['id']}: {req['requirement'][:90]}")
-            res = run_test(llm, browser, req, args.url, out_dir, args.max_steps)
+            try:
+                res = run_test(llm, browser, req, args.url, out_dir, args.max_steps)
+            except QuotaExhausted:
+                print("    ! Daily LLM quota reached. Stopping tests and writing the report.")
+                break
             print(f"    -> {res['verdict'].upper()}: {str(res.get('reason', ''))[:120]}")
             results.append(res)
             (out_dir / "results.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
