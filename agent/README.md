@@ -88,3 +88,9 @@ Every model call goes through one wrapper that counts input and output tokens. T
 - Tests change application state (for example, transfers change balances). On a shared hosted instance, the data can't be reset between tests.
 - Only the 1280 × 800 desktop viewport is tested. Narrower widths are not.
 - The Gemini free tier allows only 20 requests per day for `gemini-3.8-flash`, so the demonstrated run covers a small subset of requirements. A paid key, or a model with a larger free quota (set `GEMINI_MODEL` in `.env`), allows a full run.
+
+## Submission links
+
+- **Walkthrough video:** https://www.loom.com/share/8ee405d59f5f4a0582e85de02ba9637c
+- **QA audit report (demonstrated run):** [runs/20261020-185436/report.md](runs/20261020-185436/report.md)
+- **Cost of the demonstrated run:** 11 LLM calls, 10,664 input and 8,024 output tokens, about $0.04 at Gemini 3.8 Flash paid rates ($0 actual, on the free tier)
